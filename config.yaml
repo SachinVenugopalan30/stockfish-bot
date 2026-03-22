@@ -1,0 +1,22 @@
+triggers:
+  price_spike_pct: 2.0
+  price_spike_window_min: 5
+  cooldown_min: 10
+  reddit_min_upvotes: 50
+
+llm:
+  provider: ollama
+  model: llama3
+  ollama_host: http://host.docker.internal:11434
+
+data_sources:
+  alpaca_feed: iex
+  news_poll_interval_sec: 60
+  reddit_subreddits:
+    - wallstreetbets
+    - stocks
+    - investing
+
+portfolio:
+  starting_cash: 100000
+  max_position_pct: 10

@@ -1,0 +1,39 @@
+services:
+  stockfish-bot:
+    build: .
+    container_name: stockfish-bot
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://bot:password@db:5432/stockfish
+      - ALPACA_API_KEY=${ALPACA_API_KEY:-}
+      - ALPACA_SECRET_KEY=${ALPACA_SECRET_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:18
+    container_name: stockfish-db
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=stockfish
+      - POSTGRES_USER=bot
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - stockfish_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bot -d stockfish"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  stockfish_db_data:
