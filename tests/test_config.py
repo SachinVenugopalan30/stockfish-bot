@@ -1,8 +1,9 @@
-import pytest
-import tempfile
 import os
+import tempfile
+
 import yaml
-from app.config import Settings, load_config, TriggersConfig, LLMConfig
+
+from app.config import LLMConfig, Settings, TriggersConfig, load_config
 
 
 def test_default_settings():

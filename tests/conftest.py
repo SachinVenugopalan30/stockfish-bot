@@ -1,12 +1,13 @@
-import os
+from typing import AsyncGenerator
+
 import pytest
 import pytest_asyncio
-from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from app.models import Base
-from app.config import Settings, TriggersConfig, LLMConfig, DataSourcesConfig, PortfolioConfig
-from app.llm.base import LLMProvider, TradeContext, Decision
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+from app.config import DataSourcesConfig, LLMConfig, PortfolioConfig, Settings, TriggersConfig
 from app.engine.portfolio import PortfolioManager
+from app.llm.base import Decision, LLMProvider, TradeContext
+from app.models import Base
 
 # Use SQLite in-memory for tests
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"

@@ -1,9 +1,12 @@
 import json
 import os
+
 from google import genai
 from google.genai import types
-from app.llm.base import LLMProvider, TradeContext, Decision
+
+from app.llm.base import Decision, LLMProvider, TradeContext
 from app.llm.prompt import SYSTEM_PROMPT, build_user_message
+
 
 class GeminiProvider(LLMProvider):
     def __init__(self, model: str = "gemini-2.0-flash"):

@@ -1,6 +1,6 @@
-import pytest
 from datetime import datetime
-from app.engine.events import TriggerEvent, PriceSpikeEvent, NewsEvent, SentimentEvent
+
+from app.engine.events import NewsEvent, PriceSpikeEvent, SentimentEvent
 
 
 def test_price_spike_event():

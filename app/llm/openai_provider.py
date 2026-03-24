@@ -1,8 +1,11 @@
 import json
 import os
+
 from openai import AsyncOpenAI
-from app.llm.base import LLMProvider, TradeContext, Decision
+
+from app.llm.base import Decision, LLMProvider, TradeContext
 from app.llm.prompt import SYSTEM_PROMPT, build_user_message
+
 
 class OpenAIProvider(LLMProvider):
     def __init__(self, model: str = "gpt-4o-mini"):

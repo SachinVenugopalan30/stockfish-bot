@@ -1,8 +1,10 @@
-import pytest
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
-from app.llm.ollama import OllamaProvider
+
+import pytest
+
 from app.llm.base import TradeContext
+from app.llm.ollama import OllamaProvider
 
 
 @pytest.fixture

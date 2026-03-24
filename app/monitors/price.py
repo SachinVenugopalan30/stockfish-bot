@@ -3,14 +3,14 @@ import logging
 import os
 from collections import defaultdict, deque
 from datetime import datetime, timedelta
-from typing import Callable, Dict, Deque, Tuple
+from decimal import Decimal
+from typing import Callable, Deque, Dict, Tuple
 
 from app.config import Settings
 from app.database import async_session_factory
 from app.engine.events import PriceSpikeEvent
 from app.models import PriceCache, PriceHistory
 from app.monitors.base import BaseMonitor
-from decimal import Decimal
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +120,7 @@ class PriceMonitor(BaseMonitor):
     async def _get_tracked_tickers(self) -> list[str]:
         async with async_session_factory() as session:
             from sqlalchemy import select
+
             from app.models import TickerMetadata
             result = await session.execute(select(TickerMetadata.ticker))
             return [row[0] for row in result.fetchall()]

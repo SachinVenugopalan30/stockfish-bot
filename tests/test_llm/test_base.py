@@ -1,6 +1,7 @@
+
 import pytest
-from datetime import datetime
-from app.llm.base import TradeContext, Decision, LLMProvider
+
+from app.llm.base import Decision, LLMProvider, TradeContext
 
 
 def test_trade_context_defaults():

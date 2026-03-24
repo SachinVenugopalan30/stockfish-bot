@@ -1,8 +1,9 @@
-import pytest
-from decimal import Decimal
 from datetime import datetime
+from decimal import Decimal
+
 from sqlalchemy import select
-from app.models import Trade, Position
+
+from app.models import Position, Trade
 
 
 async def test_create_trade(db_session):

@@ -3,21 +3,24 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from app.config import load_config
-from app.database import engine, async_session_factory
-from app.models import Base
-from app.llm.factory import get_provider
-from app.engine.decision import DecisionEngine
-from app.engine.portfolio import PortfolioManager
-from app.monitors.price import PriceMonitor
-from app.monitors.news import NewsMonitor
-from app.monitors.reddit import RedditMonitor
+from app.analysis.sentiment import get_analyzer
+from app.analysis.service import TechnicalAnalysisService
 from app.api.routes import router, set_bot_state
 from app.api.websocket import manager as ws_manager
+from app.config import load_config
+from app.database import async_session_factory, engine
+from app.engine.calibration import CalibrationTracker
+from app.engine.decision import DecisionEngine
+from app.engine.portfolio import PortfolioManager
+from app.llm.factory import get_provider
+from app.models import Base
+from app.monitors.news import NewsMonitor
+from app.monitors.price import PriceMonitor
+from app.monitors.reddit import RedditMonitor
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -55,7 +58,7 @@ async def lifespan(app: FastAPI):
     async with async_session_factory() as session:
         await portfolio.load_from_db(session)
 
-    # 6. Decision engine
+    # 6. Decision engine (ta_service injected after scheduler setup below)
     _decision_engine = DecisionEngine(settings, llm, portfolio)
     _decision_engine.set_broadcast_callback(ws_manager.broadcast)
     await _decision_engine.start()
@@ -70,7 +73,9 @@ async def lifespan(app: FastAPI):
     for monitor in _monitors:
         await monitor.start()
 
-    # 8. Scheduler for hourly snapshots
+    # 8. Scheduler: hourly snapshots + 5-min indicator recompute
+    _ta_service = TechnicalAnalysisService()
+    _decision_engine.ta_service = _ta_service  # inject so ToolExecutor can use it
     _scheduler = AsyncIOScheduler()
     _scheduler.add_job(
         _decision_engine.take_portfolio_snapshot,
@@ -78,7 +83,32 @@ async def lifespan(app: FastAPI):
         hours=1,
         id="portfolio_snapshot",
     )
+    _scheduler.add_job(
+        _ta_service.compute_all,
+        trigger="interval",
+        minutes=5,
+        id="technical_indicators",
+    )
+    if settings.signal.calibration_enabled:
+        calibration_tracker = CalibrationTracker()
+        _decision_engine.set_calibration_tracker(calibration_tracker)
+        _scheduler.add_job(
+            calibration_tracker.evaluate_pending_job,
+            trigger="interval",
+            minutes=30,
+            id="calibration_eval",
+        )
     _scheduler.start()
+
+    # Compute indicators immediately on startup
+    asyncio.create_task(_ta_service.compute_all())
+
+    # Preload FinBERT in background (non-blocking)
+    analyzer = get_analyzer()
+    asyncio.get_event_loop().run_in_executor(None, analyzer.load)
+
+    # Take an immediate snapshot on startup so the chart has data from day one
+    await _decision_engine.take_portfolio_snapshot()
 
     # 9. Expose state to routes
     set_bot_state({
@@ -88,6 +118,7 @@ async def lifespan(app: FastAPI):
         "last_decision_at": None,
         "start_time": datetime.utcnow(),
         "portfolio": portfolio,
+        "ta_service": _ta_service,
     })
 
     logger.info("Stockfish API started")
@@ -107,7 +138,8 @@ async def lifespan(app: FastAPI):
 
 async def seed_ticker_metadata(settings) -> None:
     """Seed a minimal set of tickers if the table is empty."""
-    from sqlalchemy import select, func
+    from sqlalchemy import func, select
+
     from app.models import TickerMetadata
 
     async with async_session_factory() as session:

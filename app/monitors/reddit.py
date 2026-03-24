@@ -2,8 +2,8 @@ import asyncio
 import logging
 import os
 from datetime import datetime
-from typing import Callable
 from decimal import Decimal
+from typing import Callable
 
 from app.config import Settings
 from app.database import async_session_factory
@@ -121,6 +121,7 @@ class RedditMonitor(BaseMonitor):
     async def _get_ticker_map(self) -> dict:
         async with async_session_factory() as session:
             from sqlalchemy import select
+
             from app.models import TickerMetadata
             result = await session.execute(select(TickerMetadata))
             metadata = result.scalars().all()
@@ -141,6 +142,7 @@ class RedditMonitor(BaseMonitor):
     async def _get_tracked_tickers(self) -> list[str]:
         async with async_session_factory() as session:
             from sqlalchemy import select
+
             from app.models import TickerMetadata
             result = await session.execute(select(TickerMetadata.ticker))
             return [row[0] for row in result.fetchall()]

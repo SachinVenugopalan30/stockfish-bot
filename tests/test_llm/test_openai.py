@@ -1,8 +1,10 @@
-import pytest
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
-from app.llm.openai_provider import OpenAIProvider
+
+import pytest
+
 from app.llm.base import TradeContext
+from app.llm.openai_provider import OpenAIProvider
 
 
 @pytest.fixture

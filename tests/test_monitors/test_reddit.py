@@ -1,7 +1,9 @@
-import pytest
 from unittest.mock import AsyncMock
-from app.monitors.reddit import RedditMonitor
+
+import pytest
+
 from app.config import Settings, TriggersConfig
+from app.monitors.reddit import RedditMonitor
 
 
 @pytest.fixture

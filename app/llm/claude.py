@@ -1,8 +1,11 @@
 import json
 import os
+
 from anthropic import AsyncAnthropic
-from app.llm.base import LLMProvider, TradeContext, Decision
+
+from app.llm.base import Decision, LLMProvider, TradeContext
 from app.llm.prompt import SYSTEM_PROMPT, build_user_message
+
 
 class ClaudeProvider(LLMProvider):
     def __init__(self, model: str = "claude-sonnet-4-6"):

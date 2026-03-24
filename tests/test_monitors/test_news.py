@@ -1,7 +1,9 @@
+from unittest.mock import AsyncMock
+
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
+
+from app.config import DataSourcesConfig, Settings
 from app.monitors.news import NewsMonitor
-from app.config import Settings, DataSourcesConfig
 
 
 @pytest.fixture

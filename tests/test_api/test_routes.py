@@ -1,19 +1,20 @@
-import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from app.models import Base
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
 from app.database import get_db
+from app.models import Base
 
 TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
 
 
 async def get_test_app():
     """Create a minimal FastAPI app for testing routes without full lifespan."""
+    from datetime import datetime
+
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
+
     from app.api.routes import router, set_bot_state
-    from datetime import datetime
 
     engine = create_async_engine(TEST_DB_URL)
     async with engine.begin() as conn:

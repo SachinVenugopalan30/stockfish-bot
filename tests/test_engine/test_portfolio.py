@@ -1,11 +1,11 @@
+
 import pytest
 import pytest_asyncio
-from decimal import Decimal
-from datetime import datetime
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from app.models import Base, Position, PriceCache
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+from app.config import PortfolioConfig, Settings
 from app.engine.portfolio import PortfolioManager
-from app.config import Settings, PortfolioConfig, TriggersConfig, LLMConfig, DataSourcesConfig
+from app.models import Base
 
 TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
 

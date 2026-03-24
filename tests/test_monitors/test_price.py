@@ -1,10 +1,11 @@
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timedelta
-from collections import deque
-from app.monitors.price import PriceMonitor
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
+from app.config import DataSourcesConfig, Settings, TriggersConfig
 from app.engine.events import PriceSpikeEvent
-from app.config import Settings, TriggersConfig, DataSourcesConfig
+from app.monitors.price import PriceMonitor
 
 
 @pytest.fixture

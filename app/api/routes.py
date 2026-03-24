@@ -1,22 +1,26 @@
 import logging
 from datetime import datetime, timedelta
-from typing import Optional, List
+from typing import List
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
 
-from app.database import get_db
-from app.models import (
-    Trade, PortfolioSnapshot, NewsEvent as NewsEventModel,
-    SkippedTrigger, MonitorHeartbeat, PriceCache
-)
-from app.schemas.responses import (
-    StatusResponse, PortfolioResponse, SnapshotResponse, TradeResponse,
-    StatsResponse, NewsSignalResponse, SkippedSignalResponse,
-    MonitorStatus, PositionResponse,
-)
 from app.api.websocket import manager
+from app.database import get_db
+from app.models import MonitorHeartbeat, PortfolioSnapshot, PriceCache, SkippedTrigger, Trade
+from app.models import NewsEvent as NewsEventModel
+from app.schemas.responses import (
+    MonitorStatus,
+    NewsSignalResponse,
+    PortfolioResponse,
+    PositionResponse,
+    SkippedSignalResponse,
+    SnapshotResponse,
+    StatsResponse,
+    StatusResponse,
+    TradeResponse,
+)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

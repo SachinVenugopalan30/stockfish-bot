@@ -1,5 +1,5 @@
-import pytest
 import json
+
 from app.api.websocket import ConnectionManager
 
 

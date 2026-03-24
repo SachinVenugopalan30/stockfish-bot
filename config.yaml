@@ -5,8 +5,9 @@ triggers:
   reddit_min_upvotes: 50
 
 llm:
+  multi_agent: true
   provider: ollama
-  model: llama3
+  model: gemma3:latest
   ollama_host: http://host.docker.internal:11434
 
 data_sources:

@@ -1,9 +1,10 @@
 import pytest
-from app.llm.factory import get_provider
-from app.llm.ollama import OllamaProvider
+
 from app.llm.claude import ClaudeProvider
-from app.llm.openai_provider import OpenAIProvider
+from app.llm.factory import get_provider
 from app.llm.gemini import GeminiProvider
+from app.llm.ollama import OllamaProvider
+from app.llm.openai_provider import OpenAIProvider
 
 
 def test_factory_ollama():

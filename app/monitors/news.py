@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Callable, List
+from typing import Callable
 
 import feedparser
 
@@ -43,6 +43,7 @@ class NewsMonitor(BaseMonitor):
         """Returns {company_name_lower: ticker, ticker_lower: ticker}"""
         async with async_session_factory() as session:
             from sqlalchemy import select
+
             from app.models import TickerMetadata
             result = await session.execute(select(TickerMetadata))
             metadata = result.scalars().all()

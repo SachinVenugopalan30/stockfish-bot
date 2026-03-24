@@ -1,5 +1,6 @@
 from app.llm.base import LLMProvider
 
+
 def get_provider(provider: str, model: str = None, ollama_host: str = None) -> LLMProvider:
     """Return the configured LLM provider instance."""
     if provider == "claude":

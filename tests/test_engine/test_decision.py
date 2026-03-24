@@ -1,15 +1,16 @@
+from datetime import datetime
+from decimal import Decimal
+from unittest.mock import patch
+
 import pytest
 import pytest_asyncio
-import asyncio
-from unittest.mock import AsyncMock, patch
-from decimal import Decimal
-from datetime import datetime
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from app.models import Base, Trade, PriceCache, SkippedTrigger, TickerMetadata
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+from app.config import PortfolioConfig, Settings, TriggersConfig
 from app.engine.decision import DecisionEngine
-from app.engine.events import PriceSpikeEvent, NewsEvent
+from app.engine.events import PriceSpikeEvent
 from app.engine.portfolio import PortfolioManager
-from app.config import Settings, TriggersConfig, LLMConfig, DataSourcesConfig, PortfolioConfig
+from app.models import Base, PriceCache, SkippedTrigger, TickerMetadata, Trade
 from tests.conftest import MockLLMProvider
 
 TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
@@ -74,7 +75,7 @@ async def test_cooldown_suppresses_duplicate(settings, test_db):
         await engine._process_event(event2)  # Should be skipped (cooldown)
 
     async with test_db() as session:
-        from sqlalchemy import select, func
+        from sqlalchemy import func, select
         trade_count = await session.execute(
             select(func.count(Trade.id)).where(Trade.ticker == "TSLA")
         )
@@ -95,6 +96,6 @@ async def test_no_price_skips_event(settings, test_db):
         await engine._process_event(event)  # Should not raise, just log warning
 
     async with test_db() as session:
-        from sqlalchemy import select, func
+        from sqlalchemy import func, select
         count = await session.execute(select(func.count(Trade.id)))
         assert count.scalar() == 0

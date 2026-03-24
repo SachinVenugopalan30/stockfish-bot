@@ -1,8 +1,9 @@
-import pytest
-from decimal import Decimal
 from datetime import datetime
+from decimal import Decimal
+
 from sqlalchemy import select
-from app.models import PriceCache, PriceHistory, NewsEvent, SentimentScore, TickerMetadata
+
+from app.models import NewsEvent, PriceCache, PriceHistory, SentimentScore, TickerMetadata
 
 
 async def test_price_cache(db_session):

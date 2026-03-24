@@ -6,6 +6,7 @@ services:
       - "8000:8000"
     volumes:
       - ./app:/app/app
+      - ./config.yaml:/app/config.yaml
     environment:
       - DATABASE_URL=postgresql+asyncpg://bot:password@db:5432/stockfish
       - ALPACA_API_KEY=${ALPACA_API_KEY:-}
@@ -28,7 +29,7 @@ services:
       - POSTGRES_USER=bot
       - POSTGRES_PASSWORD=password
     volumes:
-      - stockfish_db_data:/var/lib/postgresql/data
+      - stockfish_db_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U bot -d stockfish"]
       interval: 5s

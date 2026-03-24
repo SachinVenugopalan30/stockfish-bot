@@ -1,10 +1,14 @@
 import asyncio
+from datetime import datetime
 from decimal import Decimal
 from typing import Dict, Optional
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
-from app.models import Position, Trade, PriceCache, PortfolioSnapshot
+
 from app.config import Settings
+from app.models import Position, PriceCache, Trade
+
 
 class PortfolioManager:
     def __init__(self, settings: Settings):
@@ -12,6 +16,19 @@ class PortfolioManager:
         self.cash: float = settings.portfolio.starting_cash
         self.positions: Dict[str, dict] = {}  # ticker -> {quantity, avg_cost, opened_at}
         self._lock = asyncio.Lock()
+
+    @property
+    def effective_wallet(self) -> float:
+        """Max capital the bot may deploy. 0 in config → use starting_cash."""
+        ws = self.settings.portfolio.wallet_size
+        return ws if ws > 0 else self.settings.portfolio.starting_cash
+
+    @property
+    def invested_capital(self) -> float:
+        """Total capital currently deployed in open positions (at avg cost)."""
+        return sum(
+            p["quantity"] * p["avg_cost"] for p in self.positions.values()
+        )
 
     async def load_from_db(self, session: AsyncSession) -> None:
         """Load current state from DB on startup."""
@@ -53,9 +70,12 @@ class PortfolioManager:
         return value
 
     async def can_buy(self, ticker: str, price: float, quantity: float, portfolio_value: float) -> bool:
-        """Check if buy respects max_position_pct and cash limits."""
+        """Check if buy respects max_position_pct, cash limits, and wallet cap."""
         cost = price * quantity
         if cost > self.cash:
+            return False
+        # Wallet cap: don't deploy beyond effective_wallet
+        if self.invested_capital + cost > self.effective_wallet:
             return False
         max_value = portfolio_value * (self.settings.portfolio.max_position_pct / 100)
         current_value = self.positions.get(ticker, {}).get("quantity", 0) * price
@@ -72,7 +92,6 @@ class PortfolioManager:
                 pos["quantity"] = total_qty
                 pos["avg_cost"] = total_cost / total_qty
             else:
-                from datetime import datetime
                 self.positions[ticker] = {
                     "quantity": quantity,
                     "avg_cost": price,
@@ -81,7 +100,6 @@ class PortfolioManager:
             # Upsert position in DB
             result = await session.execute(select(Position).where(Position.ticker == ticker))
             db_pos = result.scalar_one_or_none()
-            from datetime import datetime
             if db_pos:
                 db_pos.quantity = Decimal(str(self.positions[ticker]["quantity"]))
                 db_pos.avg_cost = Decimal(str(self.positions[ticker]["avg_cost"]))
@@ -117,7 +135,6 @@ class PortfolioManager:
                 db_pos = result.scalar_one_or_none()
                 if db_pos:
                     db_pos.quantity = Decimal(str(pos["quantity"]))
-                    from datetime import datetime
                     db_pos.updated_at = datetime.utcnow()
                 await session.flush()
             return realized_pnl
